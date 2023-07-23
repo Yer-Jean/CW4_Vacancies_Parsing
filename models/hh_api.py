@@ -3,15 +3,11 @@ import json
 import requests
 
 from models.site_api import SiteAPI
+from models.validate_mixin import ValidateMixin
 from settings import HH_API_URL
 
 
-class HeadHunterAPI(SiteAPI):
-
-    # def __init__(self, search_string: str):
-    #     self.search_string = search_string
-
-
+class HeadHunterAPI(SiteAPI, ValidateMixin):
 
     def get_vacancies(self, search_string) -> list[dict] | None:
 
@@ -26,8 +22,6 @@ class HeadHunterAPI(SiteAPI):
 
         while True:
             response = requests.get(HH_API_URL, params=request_params).json()
-            # print(json.dumps(response, indent=4, ensure_ascii=False))
-
             if response['found'] == 0:  # Если не найдена ни одна вакансия, то возвращаем None
                 return None
 
@@ -41,29 +35,18 @@ class HeadHunterAPI(SiteAPI):
             print(json.dumps(response_data, indent=4, ensure_ascii=False))
 
             for i in range(len(response_data)):  # Цикл по вакансиям на странице
-                # Если нет словаря с зарплатой, или не указаны её верхняя или нижняя граница,
-                # то присваиваем границам нулевые значения
-                salary_from = 0
-                salary_to = 0
-                # Если же есть словарь со значениями одной из границ или обеих, то присваиваем их
-                if response_data[i]['salary'] is not None and response_data[i]['salary']['from'] is not None:
-                    salary_from = response_data[i]['salary']['from']
-                if response_data[i]['salary'] is not None and response_data[i]['salary']['to'] is not None:
-                    salary_to = response_data[i]['salary']['to']
-
                 vacancies += [{
-                        'vacancy_id': response_data[i]['id'],
-                        'name': response_data[i]['name'],
-                        'employer': response_data[i]['employer']['name'],
-                        'city': response_data[i]['area']['name'],
-                        'employment': response_data[i]['employment']['name'],
-                        'salary_from': salary_from,
-                        'salary_to': salary_to,
-
-                        'experience': response_data[i]['experience']['name'],
-                        'requirement': response_data[i]['snippet']['requirement'],
-                        'url': response_data[i]['url'],
-                        'source': 'hh.ru',
+                    'vacancy_id': response_data[i]['id'],  # id - обязательный параметр, валидация не нужна
+                    'name': response_data[i]['name'],  # name - обязательный параметр, валидация не нужна
+                    'employer': response_data[i]['employer']['name'],  # name - обязательный параметр, валидация не нужна
+                    'city': response_data[i]['area']['name'],  # name - обязательный параметр, валидация не нужна
+                    'employment': self.validate_value(response_data[i], 'str', 'employment', 'name'),
+                    'salary_from': self.validate_value(response_data[i], 'int', 'salary', 'from'),
+                    'salary_to': self.validate_value(response_data[i], 'int', 'salary', 'to'),
+                    'experience': self.validate_value(response_data[i], 'str', 'experience', 'name'),
+                    'requirement': self.validate_value(response_data[i], 'str', 'snippet', 'requirement'),
+                    'url': response_data[i]['url'],     # url - обязательный параметр, валидация не нужна
+                    'source': 'hh.ru',
                 }]
             current_page += 1
             request_params.update({'page': current_page})
