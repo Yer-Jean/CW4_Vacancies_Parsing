@@ -1,13 +1,13 @@
 import json
 
-import requests
-
+from models.exceptions import GetRemoteDataException
 from models.site_api import SiteAPI
+from models.get_remote_data_mixin import GetRemoteData
 from models.validate_mixin import ValidateMixin
 from settings import HH_API_URL
 
 
-class HeadHunterAPI(SiteAPI, ValidateMixin):
+class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
 
     def get_vacancies(self, search_string) -> list[dict] | None:
 
@@ -21,37 +21,43 @@ class HeadHunterAPI(SiteAPI, ValidateMixin):
         start = True
 
         while True:
-            response = requests.get(HH_API_URL, params=request_params).json()
-            if response['found'] == 0:  # Если не найдена ни одна вакансия, то возвращаем None
+            try:
+                data = self.get_remote_data(url=HH_API_URL, params=request_params)
+            except GetRemoteDataException as err:
+                print(err.message)
+                print('Попробуйте немного позже или измените параметры запроса')
                 return None
 
+            if data['found'] == 0:  # Если не найдена ни одна вакансия, то НУЖНО ПЕРЕВЕСТИ ПОЛЬЗОВАТЕЛЯ НА НОВЫЙ ЗАПРОС
+                print('По вашему запросу ничего не найдено. Измените параметры запроса')
+                return None
+                # raise GetRemoteDataException('По вашему запросу ничего не найдено')
+
             if start:
-                num_of_pages = response['pages']
+                num_of_pages = data['pages']
                 start = False
                 print(num_of_pages)
 
-            response_data = response['items']
+            vacancies_data = data['items']
+            # print(json.dumps(vacancies_data, indent=4, ensure_ascii=False))
 
-            print(json.dumps(response_data, indent=4, ensure_ascii=False))
-
-            for i in range(len(response_data)):  # Цикл по вакансиям на странице
+            for i in range(len(vacancies_data)):  # Цикл по вакансиям на странице
                 vacancies += [{
-                    'vacancy_id': response_data[i]['id'],  # id - обязательный параметр, валидация не нужна
-                    'name': response_data[i]['name'],  # name - обязательный параметр, валидация не нужна
-                    'employer': response_data[i]['employer']['name'],  # name - обязательный параметр, валидация не нужна
-                    'city': response_data[i]['area']['name'],  # name - обязательный параметр, валидация не нужна
-                    'employment': self.validate_value(response_data[i], 'str', 'employment', 'name'),
-                    'salary_from': self.validate_value(response_data[i], 'int', 'salary', 'from'),
-                    'salary_to': self.validate_value(response_data[i], 'int', 'salary', 'to'),
-                    'experience': self.validate_value(response_data[i], 'str', 'experience', 'name'),
-                    'requirement': self.validate_value(response_data[i], 'str', 'snippet', 'requirement'),
-                    'url': response_data[i]['url'],     # url - обязательный параметр, валидация не нужна
+                    'vacancy_id': vacancies_data[i]['id'],
+                    'name': vacancies_data[i]['name'],
+                    'employer': vacancies_data[i]['employer']['name'],
+                    'city': vacancies_data[i]['area']['name'],
+                    'employment': self.validate_value(vacancies_data[i], 'str', 'employment', 'name'),
+                    'salary_from': self.validate_value(vacancies_data[i], 'int', 'salary', 'from'),
+                    'salary_to': self.validate_value(vacancies_data[i], 'int', 'salary', 'to'),
+                    'experience': self.validate_value(vacancies_data[i], 'str', 'experience', 'name'),
+                    'requirement': self.validate_value(vacancies_data[i], 'str', 'snippet', 'requirement'),
+                    'url': vacancies_data[i]['url'],
                     'source': 'hh.ru',
                 }]
             current_page += 1
             request_params.update({'page': current_page})
             if current_page == 3:  # num_of_pages + 1
-                print(json.dumps(vacancies, indent=4, ensure_ascii=False))
                 return vacancies
 
         # if response.status_code == 200:

@@ -3,12 +3,13 @@ from typing import Any
 
 class ValidateMixin:
 
-    @classmethod
-    def validate_value(cls, data: list, value_type: str, key: str, sub_key: str) -> Any:
+    @staticmethod
+    def validate_value(data: list, value_type: str, key: str, sub_key: str) -> Any:
         """
         В принимаемом словаре data проверяется наличие значений по
         ключу key. Если значение не пустое, то проверяется наличие значений
-        по подключу sub_key. Если таких значений нет, то возвращаем 0,
+        по подключу sub_key. Если таких значений нет, то возвращаем пустое
+        значение в соответствии с типом ожидаемых данных value_type,
         если есть, то - значение находящееся по ключу subkey.
 
         (За отсутствием необходимости, в данной задаче не рассматриваем
