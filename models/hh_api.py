@@ -10,26 +10,25 @@ from settings import HH_API_URL
 class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
 
     def get_vacancies(self, search_string) -> list[dict] | None:
-
+        vacancies = []
         current_page = 0
         per_pages = 2
         request_params = {'search_field': 'name',
                           'per_page': per_pages,
                           'page': current_page,
                           'text': search_string}
-        vacancies = []
         start = True
 
         while True:
             try:
                 data = self.get_remote_data(url=HH_API_URL, params=request_params)
-            except GetRemoteDataException as err:
+            except GetRemoteDataException as err:  # Если произошли ошибки, то возвращаем None
                 print(err.message)
-                print('Попробуйте немного позже или измените параметры запроса')
+                print('\nПопробуйте немного позже или измените параметры запроса')
                 return None
 
-            if data['found'] == 0:  # Если не найдена ни одна вакансия, то НУЖНО ПЕРЕВЕСТИ ПОЛЬЗОВАТЕЛЯ НА НОВЫЙ ЗАПРОС
-                print('По вашему запросу ничего не найдено. Измените параметры запроса')
+            if data['found'] == 0:  # Если не найдена ни одна вакансия, то возвращаем None
+                print('\nПо вашему запросу на HeadHunter ничего не найдено. Измените параметры запроса')
                 return None
                 # raise GetRemoteDataException('По вашему запросу ничего не найдено')
 
