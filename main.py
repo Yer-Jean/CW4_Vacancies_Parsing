@@ -4,13 +4,13 @@ import string
 from models.hh_api import HeadHunterAPI
 
 MENU = {
-    'level_1': {
-                '1': 'HeadHunter',
-                '2': 'SuperJob',
-                '3': 'HeadHunter и SuperJob',
-                '9': 'Изменить запрос',
-                '0': 'Выход из программы'}
-}
+    'level_1_main': {
+                    '1': 'HeadHunter',
+                    '2': 'SuperJob',
+                    '3': 'HeadHunter и SuperJob',
+                    '9': 'Изменить запрос',
+                    '0': 'Выход из программы'}
+    }
 
 
 def menu_interaction(menu_name: str, menu: dict) -> string:

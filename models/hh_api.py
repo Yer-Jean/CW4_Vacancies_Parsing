@@ -1,5 +1,3 @@
-import json
-
 from models.exceptions import GetRemoteDataException
 from models.site_api import SiteAPI
 from models.get_remote_data_mixin import GetRemoteData
