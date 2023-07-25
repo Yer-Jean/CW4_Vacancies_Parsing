@@ -12,9 +12,9 @@ class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
         current_page = 0
         per_pages = 2
         request_params = {'search_field': 'name',
+                          'text': search_string,
                           'per_page': per_pages,
-                          'page': current_page,
-                          'text': search_string}
+                          'page': current_page}
         start = True
 
         while True:
@@ -32,8 +32,8 @@ class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
 
             if start:
                 num_of_pages = data['pages']
+                num_of_vacancies = data['found']
                 start = False
-                print(num_of_pages)
 
             vacancies_data = data['items']
             # print(json.dumps(vacancies_data, indent=4, ensure_ascii=False))
@@ -45,16 +45,19 @@ class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
                     'employer': vacancies_data[i]['employer']['name'],
                     'city': vacancies_data[i]['area']['name'],
                     'employment': self.validate_value(vacancies_data[i], 'str', 'employment', 'name'),
+                    'schedule': self.validate_value(vacancies_data[i], 'str', 'schedule', 'name'),
                     'salary_from': self.validate_value(vacancies_data[i], 'int', 'salary', 'from'),
                     'salary_to': self.validate_value(vacancies_data[i], 'int', 'salary', 'to'),
                     'experience': self.validate_value(vacancies_data[i], 'str', 'experience', 'name'),
                     'requirement': self.validate_value(vacancies_data[i], 'str', 'snippet', 'requirement'),
-                    'url': vacancies_data[i]['url'],
+                    'url': vacancies_data[i]['alternate_url'],
                     'source': 'hh.ru',
                 }]
             current_page += 1
             request_params.update({'page': current_page})
             if current_page == 3:  # num_of_pages + 1
+                print(num_of_vacancies)
+                print(num_of_pages)
                 return vacancies
 
         # if response.status_code == 200:
