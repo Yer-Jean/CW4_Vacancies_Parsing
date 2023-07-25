@@ -31,9 +31,9 @@ class GetRemoteData:
 
         # Пытаемся декодировать JSON
         try:
-            data = response.json()
+            data: dict = response.json()
         except json.decoder.JSONDecodeError:
             raise GetRemoteDataException('Ошибка в формате данных')
 
-        # Возвращаем словарь с данными, если ранее не возникло каких-либо ошибок
+        # Возвращаем словарь с данными, если не возникло каких-либо ошибок
         return data
