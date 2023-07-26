@@ -1,35 +1,14 @@
 import json
 
-from models.hh_api import HeadHunterAPI
+from api_models.hh_api import HeadHunterAPI
+from api_models.sj_api import SuperJobAPI
 from models.vacancy import Vacancy
+from settings import MENU
 
 
 class Menu:
 
-    MENU = {
-        'level_1': {
-            '1': 'HeadHunter',
-            '2': 'SuperJob',
-            '3': 'HeadHunter и SuperJob',
-            '4': 'Новый запрос\n----------------------',
-            '0': 'Выход из программы'
-        },
-        'level_2': {
-            '1': 'Новый запрос',
-            '2': 'Добавить запрос',
-            '3': 'Фильтровать результаты',
-            '4': 'Вывести результаты на экран',
-            '5': 'Сохранить результаты в файл\n-------------------------------',
-            '0': 'Выход из программы'
-        },
-        'Level_3': {
-            '1': 'Сбросить фильтр',
-            '2': 'Добавить фильтр',
-            '8': 'Вывести результаты на экран',
-            '9': 'Сохранить результаты в файл\n-------------------------------',
-            '0': 'Выход из программы'
-        }
-    }
+    __menu = MENU
 
     def __call__(self, *args, **kwargs):
         start = True
@@ -45,10 +24,11 @@ class Menu:
             #     print(f'\nВаш запрос: {query}')
 
             # -----------  Выводим меню 1 уровня  -----------
-            choice = self.menu_interaction('На каких ресурсах ищем:', self.MENU['level_1'])
+            choice = self.menu_interaction('На каких ресурсах ищем:', self.__menu['level_1'])
             match choice:
                 case '1':  # Поиск по запросу на HeadHunter
-                    hh_api = HeadHunterAPI()
+                    self.case_realization('HeadHunterAPI')
+                    # hh_api = HeadHunterAPI()
                     hh_vacancies = hh_api.get_vacancies(query)
                     if hh_vacancies:
                         print(f'По запросу "{query}"')
@@ -56,13 +36,13 @@ class Menu:
                         for vacancy in hh_vacancies:
                             Vacancy(**vacancy)
                     else:
-                        print(f'\nПо вашему запросу "{query}"'
+                        print(f'\nПо запросу "{query}"'
                               f'\nна HeadHunter ничего не найдено.'
                               f'\nИзмените параметры запроса')
                         continue
                 case '2':  # Поиск по запросу на SuperJob
-                    # sj_api = SuperJobAPI()
-                    # sj_vacancies = sj_api.get_vacancies(query)
+                    sj_api = SuperJobAPI()
+                    sj_vacancies = sj_api.get_vacancies(query)
                     # if sj_vacancies:
                     #     print(f'Найдено вакансий: {len(sj_vacancies)} (SuperJob)')
                     break
@@ -81,16 +61,15 @@ class Menu:
                               '\nИзмените параметры запроса.')
                         continue
                 case '4':  # Новый запрос
-                    Vacancy.clear_all_vacancies()
+                    Vacancy.clear_all_vacancies()  # Перед новым запросом удаляем предыдущие результаты
                     start = True
-                    # Удаляем предыдущие результаты
                     continue
                 case '0':  # Выход из программы
                     return
 
             # -----------  Выводим меню 2 уровня  -----------
             while True:
-                choice = self.menu_interaction('Что делаем дальше:', self.MENU['level_2'])
+                choice = self.menu_interaction('Что делаем дальше:', self.__menu['level_2'])
                 match choice:
                     case '1':  # Новый запрос
                         # Удаляем предыдущие результаты, очищая список с вакансиями
@@ -116,11 +95,20 @@ class Menu:
         :param menu: Пункты меню.
         :return: Выбранная опция меню.
         """
+        print(f'\n{menu_name}')
+        print('\n'.join([f"({key}) {value}" for key, value in menu.items()]))
+
         while True:
-            print(f'\n{menu_name}')
-            print('\n'.join([f"({key}) {value}" for key, value in menu.items()]))
-            choice = input('\nВыберите одну из опций: ')
+            choice = input('\nВведите номер пункта меню: ')
             if choice not in menu:
-                print("\nВыберите одну из доступных опций.")
+                print("\nНеправильный номер. Выберите один из доступных номеров.")
                 continue
             return choice
+
+    @classmethod
+    def case_realization(cls, class_name: str):
+        temp = globals()[class_name]()
+        # cls.__class__.__name__ = class_name
+        # temp = cls.__class__.__name__
+        print(type(temp))
+        print(1)
