@@ -45,7 +45,7 @@ class Menu:
             #     print(f'\nВаш запрос: {query}')
 
             # -----------  Выводим меню 1 уровня  -----------
-            choice = self.menu_interaction('\nНа каких ресурсах ищем:', self.MENU['level_1'])
+            choice = self.menu_interaction('На каких ресурсах ищем:', self.MENU['level_1'])
             match choice:
                 case '1':  # Поиск по запросу на HeadHunter
                     hh_api = HeadHunterAPI()
@@ -90,7 +90,7 @@ class Menu:
 
             # -----------  Выводим меню 2 уровня  -----------
             while True:
-                choice = self.menu_interaction('\nЧто делаем дальше:', self.MENU['level_2'])
+                choice = self.menu_interaction('Что делаем дальше:', self.MENU['level_2'])
                 match choice:
                     case '1':  # Новый запрос
                         # Удаляем предыдущие результаты, очищая список с вакансиями
