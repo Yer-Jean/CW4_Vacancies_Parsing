@@ -2,7 +2,7 @@ from api_models.site_api import SiteAPI
 from api_models.get_remote_data_mixin import GetRemoteData
 from api_models.validate_mixin import ValidateMixin
 from models.exceptions import GetRemoteDataException
-from settings import SJ_API_KEY, SJ_API_URL
+from settings import SJ_API_KEY, SJ_API_URL, RESULTS_PER_PAGE
 
 
 class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
@@ -12,10 +12,9 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
     def get_vacancies(self, search_string) -> list[dict] | None:
         vacancies = []
         current_page = 0
-        per_pages = 2
         __headers = {'X-Api-App-Id': SJ_API_KEY}
         request_params = {'keys': search_string,
-                          'count': per_pages,
+                          'count': RESULTS_PER_PAGE,
                           'page': current_page}
         start = True
 
@@ -24,7 +23,6 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
                 data = self.get_remote_data(url=self.__sj_api_url,
                                             headers=__headers,
                                             params=request_params)
-                print(self.__dict__)
             except GetRemoteDataException as err:  # Если произошли ошибки, то возвращаем None
                 print(err.message)
                 print('\nПопробуйте немного позже или измените параметры запроса')
@@ -32,15 +30,11 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
             if data['total'] == 0:  # Если не найдена ни одна вакансия, то возвращаем None
                 # print('\nПо вашему запросу на HeadHunter ничего не найдено. Измените параметры запроса')
                 return None
-                # raise GetRemoteDataException('По вашему запросу ничего не найдено')
 
             if start:
-                # num_of_pages = data['pages']
                 num_of_vacancies = data['total']
                 if num_of_vacancies == 0:  # Если не найдена ни одна вакансия, то возвращаем None
-                    # print('\nПо вашему запросу на HeadHunter ничего не найдено. Измените параметры запроса')
                     return None
-                    # raise GetRemoteDataException('По вашему запросу ничего не найдено')
                 start = False
 
             vacancies_data = data['objects']
@@ -50,8 +44,7 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
                     'vacancy_id': vacancies_data[i]['id'],
                     'name': vacancies_data[i]['profession'],
                     'employer': vacancies_data[i]['firm_name'],
-                    # 'employer': self.validate_value(vacancies_data[i], 'str', 'client', 'title'),
-                    'city': vacancies_data[i]['town'],
+                    'city': vacancies_data[i]['town']['title'],
                     # Со следующими двумя параметрами надо поработать
                     'employment': self.validate_value(vacancies_data[i], 'str', 'type_of_work', 'title'),
                     'schedule': self.validate_value(vacancies_data[i], 'str', 'place_of_work', 'title'),
@@ -66,6 +59,6 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
 
             current_page += 1
             request_params.update({'page': current_page})
-            if not data['more']:  # Страницы результатов заканчиваются, когда параметр more=False
-                print(num_of_vacancies)
+            if not data['more']:  # Страницы результатов заканчиваются, когда параметр more = False
+                # print(num_of_vacancies)
                 return vacancies

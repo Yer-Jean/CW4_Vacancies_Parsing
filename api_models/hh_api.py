@@ -2,7 +2,7 @@ from models.exceptions import GetRemoteDataException
 from api_models.site_api import SiteAPI
 from api_models.get_remote_data_mixin import GetRemoteData
 from api_models.validate_mixin import ValidateMixin
-from settings import HH_API_URL
+from settings import HH_API_URL, RESULTS_PER_PAGE
 
 
 class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
@@ -11,10 +11,9 @@ class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
     def get_vacancies(self, search_string) -> list[dict] | None:
         vacancies = []
         current_page = 0
-        per_pages = 2
         request_params = {'search_field': 'name',
                           'text': search_string,
-                          'per_page': per_pages,
+                          'per_page': RESULTS_PER_PAGE,
                           'page': current_page}
         start = True
 
@@ -57,8 +56,8 @@ class HeadHunterAPI(SiteAPI, ValidateMixin, GetRemoteData):
             current_page += 1
             request_params.update({'page': current_page})
             if current_page == 3:  # num_of_pages + 1:
-                print(num_of_vacancies)
-                print(num_of_pages)
+                # print(num_of_vacancies)
+                ###### print(num_of_pages)
                 return vacancies
 
         # if response.status_code == 200:

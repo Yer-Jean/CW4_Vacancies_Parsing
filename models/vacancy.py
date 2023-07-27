@@ -83,3 +83,5 @@ if __name__ == '__main__':
     # print(example.group(1))
     # print(example.group(2))
     # print(example.groups)
+
+    # print(self.__dict__)

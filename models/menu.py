@@ -9,10 +9,10 @@ from settings import MENU
 class Menu:
 
     __menu = MENU
+    total_vacancies = 0
 
     def __call__(self, *args, **kwargs):
         start = True
-        # total_vacancies = 0
 
         # Выводим первое меню
         while True:
@@ -27,41 +27,17 @@ class Menu:
             choice = self.menu_interaction('На каких ресурсах ищем:', self.__menu['level_1'])
             match choice:
                 case '1':  # Поиск по запросу на HeadHunter
-                    self.case_realization('HeadHunterAPI')
-                    # hh_api = HeadHunterAPI()
-                    hh_vacancies = hh_api.get_vacancies(query)
-                    if hh_vacancies:
-                        print(f'По запросу "{query}"')
-                        print(f'найдено вакансий: {len(hh_vacancies)} (HeadHunter)')
-                        for vacancy in hh_vacancies:
-                            Vacancy(**vacancy)
-                    else:
-                        print(f'\nПо запросу "{query}"'
-                              f'\nна HeadHunter ничего не найдено.'
-                              f'\nИзмените параметры запроса')
+                    if not self.search_processing(class_names=['HeadHunterAPI'], query=query):
                         continue
                 case '2':  # Поиск по запросу на SuperJob
-                    sj_api = SuperJobAPI()
-                    sj_vacancies = sj_api.get_vacancies(query)
-                    # if sj_vacancies:
-                    #     print(f'Найдено вакансий: {len(sj_vacancies)} (SuperJob)')
-                    break
-                case '3':  # Поиск по запросу на HeadHunter и SuperJob
-                    hh_api = HeadHunterAPI()
-                    # sj_api = SuperJobAPI()
-                    hh_vacancies = hh_api.get_vacancies(query)
-                    # sj_vacancies = sj_api.get_vacancies(query)
-                    if hh_vacancies:  # or hh_vacancies:
-                        print(f'Найдено вакансий: {len(hh_vacancies)} (HeadHunter)')
-                        # print(f'Найдено вакансий: {len(sj_vacancies)} (SuperJob)')
-                        # print(f'Всего вакансий: {len(hh_vacancies) + len(sj_vacancies)}')
-                        # break
-                    else:
-                        print('\nПо вашему запросу на HeadHunter и SuperJob ничего не найдено.'
-                              '\nИзмените параметры запроса.')
+                    if not self.search_processing(class_names=['SuperJobAPI'], query=query):
+                        continue
+                case '3':  # Поиск по запросу и на HeadHunter и на SuperJob
+                    if not self.search_processing(class_names=['HeadHunterAPI', 'SuperJobAPI'], query=query):
                         continue
                 case '4':  # Новый запрос
                     Vacancy.clear_all_vacancies()  # Перед новым запросом удаляем предыдущие результаты
+                    self.total_vacancies = 0
                     start = True
                     continue
                 case '0':  # Выход из программы
@@ -74,6 +50,7 @@ class Menu:
                     case '1':  # Новый запрос
                         # Удаляем предыдущие результаты, очищая список с вакансиями
                         Vacancy.clear_all_vacancies()
+                        self.total_vacancies = 0
                         start = True
                         break
                     case '2':  # Добавить запрос
@@ -81,7 +58,7 @@ class Menu:
                         start = True
                         break
                     case '4':  # Вывести результаты на экран
-                        print(json.dumps(hh_vacancies, indent=4, ensure_ascii=False))
+                        # print(json.dumps(vacancies, indent=4, ensure_ascii=False))
                         for vacancy in Vacancy.get_all_vacancies():
                             print(vacancy)
                         continue
@@ -106,9 +83,30 @@ class Menu:
             return choice
 
     @classmethod
-    def case_realization(cls, class_name: str):
-        temp = globals()[class_name]()
-        # cls.__class__.__name__ = class_name
-        # temp = cls.__class__.__name__
-        print(type(temp))
-        print(1)
+    def search_processing(cls, class_names: list, query: str, **kwargs) -> bool:
+        """Обрабатывает запросы на HeadHunter и SuperJob.
+        :param class_names: Названия классов API.
+        :param query: Поисковый запрос.
+        :param kwargs: Параметры API.
+        :return: Возвращает True, если вакансии найдены.
+        """
+        # total_vacancies = 0
+        print(f'\nПо запросу "{query}"')
+
+        for class_name in class_names:
+            class_api = globals()[class_name]()  # Создаем экземпляр класса class_name
+            vacancies = class_api.get_vacancies(query)
+
+            if vacancies:
+                num_of_vacancies = len(vacancies)
+                # удаляем последние 3 символа от имени класса
+                print(f'найдено вакансий на {class_name[:-3]}: {num_of_vacancies}')
+                for vacancy in vacancies:
+                    Vacancy(**vacancy)
+            else:
+                print(f'\nна {class_name[:-3]} ничего не найдено.'
+                      f'\nИзмените параметры запроса')
+            cls.total_vacancies += num_of_vacancies
+
+        print(f'------------------\nВсего вакансий: {cls.total_vacancies}\n')
+        return bool(vacancies)
