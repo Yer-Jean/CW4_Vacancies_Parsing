@@ -1,7 +1,7 @@
 from api_models.site_api import SiteAPI
 from api_models.get_remote_data_mixin import GetRemoteData
 from api_models.validate_mixin import ValidateMixin
-from models.exceptions import GetRemoteDataException
+from models.exceptions import GetRemoteDataException, APIDataException
 from settings import SJ_API_KEY, SJ_API_URL, RESULTS_PER_PAGE
 
 
@@ -39,23 +39,25 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
 
             vacancies_data = data['objects']
             # print(json.dumps(vacancies_data, indent=4, ensure_ascii=False))
-            for i in range(len(vacancies_data)):  # Цикл по вакансиям на странице
-                vacancies += [{
-                    'vacancy_id': vacancies_data[i]['id'],
-                    'name': vacancies_data[i]['profession'],
-                    'employer': vacancies_data[i]['firm_name'],
-                    'city': vacancies_data[i]['town']['title'],
-                    # Со следующими двумя параметрами надо поработать
-                    'employment': self.validate_value(vacancies_data[i], 'str', 'type_of_work', 'title'),
-                    'schedule': self.validate_value(vacancies_data[i], 'str', 'place_of_work', 'title'),
-                    'salary_from': vacancies_data[i]['payment_from'],
-                    'salary_to': vacancies_data[i]['payment_to'],
-                    'currency': vacancies_data[i]['currency'],
-                    'experience': self.validate_value(vacancies_data[i], 'str', 'experience', 'title'),
-                    'requirement': vacancies_data[i]['vacancyRichText'],
-                    'url': vacancies_data[i]['link'],
-                    'source': 'superjob.ru',
-                }]
+            try:
+                for i in range(len(vacancies_data)):  # Цикл по вакансиям на странице
+                    vacancies += [{
+                        'vacancy_id': vacancies_data[i]['id'],
+                        'name': vacancies_data[i]['profession'],
+                        'employer': vacancies_data[i]['firm_name'],
+                        'city': vacancies_data[i]['town']['title'],
+                        'employment': self.validate_value(vacancies_data[i], 'str', 'type_of_work', 'title'),
+                        'schedule': self.validate_value(vacancies_data[i], 'str', 'place_of_work', 'title'),
+                        'salary_from': vacancies_data[i]['payment_from'],
+                        'salary_to': vacancies_data[i]['payment_to'],
+                        'currency': vacancies_data[i]['currency'],
+                        'experience': self.validate_value(vacancies_data[i], 'str', 'experience', 'title'),
+                        'requirement': vacancies_data[i]['vacancyRichText'],
+                        'url': vacancies_data[i]['link'],
+                        'source': 'superjob.ru',
+                    }]
+            except KeyError:
+                raise APIDataException('произошла ошибка при обработке данных вакансий')
 
             current_page += 1
             request_params.update({'page': current_page})

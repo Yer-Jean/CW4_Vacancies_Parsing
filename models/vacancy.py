@@ -25,7 +25,7 @@ class Vacancy:
         self.name: str = name
         self.employer: str = employer
         self.city: str = city
-        self.employment: str = employment
+        self.employment: str = employment  # self.calibrate_employment_reference()
         self.schedule: str = schedule
         self.salary_from: int = salary_from
         self.salary_to: int = salary_to
@@ -44,6 +44,11 @@ class Vacancy:
     @classmethod
     def clear_all_vacancies(cls):
         cls.__all_vacancies.clear()
+
+    # @staticmethod
+    # def calibrate_employment_reference(text: str) -> str:
+    #     """Метод предназначен для унификации значений справочников"""
+    #     pass
 
     @staticmethod
     def clean_and_cut_requirement(text: str) -> str:
