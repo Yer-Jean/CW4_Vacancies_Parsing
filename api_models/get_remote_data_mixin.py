@@ -18,22 +18,22 @@ class GetRemoteData:
         try:
             response = requests.get(**kwargs)
         except requests.exceptions.ConnectionError:
-            raise GetRemoteDataException('Не найден сайт или ошибка сети')
+            raise GetRemoteDataException('\nНе найден сайт или ошибка сети')
         except requests.exceptions.HTTPError:
-            raise GetRemoteDataException('Некорректный HTTP ответ')
+            raise GetRemoteDataException('\nНекорректный HTTP ответ')
         except requests.exceptions.Timeout:
-            raise GetRemoteDataException('Вышло время ожидания ответа')
+            raise GetRemoteDataException('\nВышло время ожидания ответа')
         except requests.exceptions.TooManyRedirects:
-            raise GetRemoteDataException('Превышено максимальное значение перенаправлений')
+            raise GetRemoteDataException('\nПревышено максимальное значение перенаправлений')
 
         if response.status_code != 200:  # Все ответы сайта, кроме - 200, являются ошибочными
-            raise GetRemoteDataException(f'Ошибка {response.status_code} - {response.reason}')
+            raise GetRemoteDataException(f'\nОшибка {response.status_code} - {response.reason}')
 
         # Пытаемся декодировать JSON
         try:
             data: dict = response.json()
         except json.decoder.JSONDecodeError:
-            raise GetRemoteDataException('Ошибка в формате данных')
+            raise GetRemoteDataException('\nОшибка в формате данных')
 
         # Возвращаем словарь с данными, если не возникло каких-либо ошибок
         return data

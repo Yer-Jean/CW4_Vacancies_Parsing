@@ -25,7 +25,7 @@ class SuperJobAPI(SiteAPI, ValidateMixin, GetRemoteData):
                                             params=request_params)
             except GetRemoteDataException as err:  # Если произошли ошибки, то возвращаем None
                 print(err.message)
-                print('\nПопробуйте немного позже или измените параметры запроса')
+                print('попробуйте немного позже или измените параметры запроса')
                 return None
             if data['total'] == 0:  # Если не найдена ни одна вакансия, то возвращаем None
                 # print('\nПо вашему запросу на HeadHunter ничего не найдено. Измените параметры запроса')
